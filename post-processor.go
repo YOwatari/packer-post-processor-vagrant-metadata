@@ -19,17 +19,17 @@ import (
 )
 
 type Config struct {
-	Name                string `mapstructure:"name"`
-	Description         string `mapstructure:"description"`
-	MetadataPath        string `mapstructure:"output"`
-	UrlPrefix           string `mapstructure:"url_prefix"`
-	BoxDir              string `mapstructure:"box_dir"`
-	Version             string `mapstructure:"version"`
 	common.PackerConfig `mapstructure:",squash"`
 
-	ctx interpolate.Context
+	Name         string `mapstructure:"name"`
+	MetadataPath string `mapstructure:"output"`
+	UrlPrefix    string `mapstructure:"url_prefix"`
+	BoxDir       string `mapstructure:"box_dir"`
+	Version      string `mapstructure:"version"`
 
-	BoxName string
+	Description string `mapstructure:"description"`
+
+	ctx interpolate.Context
 }
 
 type PostProcessor struct {
@@ -41,7 +41,9 @@ func (p *PostProcessor) Configure(raws ...interface{}) error {
 		Interpolate:        true,
 		InterpolateContext: &p.config.ctx,
 		InterpolateFilter: &interpolate.RenderFilter{
-			Exclude: []string{"output"},
+			Exclude: []string{
+				"description",
+			},
 		},
 	}, raws...)
 
@@ -50,18 +52,19 @@ func (p *PostProcessor) Configure(raws ...interface{}) error {
 	}
 
 	errs := new(packer.MultiError)
+
+	// required configuration
 	templates := map[string]*string{
-		"name":        &p.config.Name,
-		"description": &p.config.Description,
-		"output":      &p.config.MetadataPath,
-		"url_prefix":  &p.config.UrlPrefix,
-		"box_dir":     &p.config.BoxDir,
-		"version":     &p.config.Version,
+		"name":       &p.config.Name,
+		"output":     &p.config.MetadataPath,
+		"url_prefix": &p.config.UrlPrefix,
+		"box_dir":    &p.config.BoxDir,
+		"version":    &p.config.Version,
 	}
 
 	for key, ptr := range templates {
 		if *ptr == "" {
-			errs = packer.MultiErrorAppend(errs, fmt.Errorf("vagrant-extend %s must be set", key))
+			errs = packer.MultiErrorAppend(errs, fmt.Errorf("%s must be set", key))
 		}
 	}
 
@@ -79,13 +82,16 @@ func (p *PostProcessor) Configure(raws ...interface{}) error {
 }
 
 func (p *PostProcessor) PostProcess(ui packer.Ui, artifact packer.Artifact) (packer.Artifact, bool, error) {
+	// Only accepts input from the vagrant post-processor
 	if artifact.BuilderId() != "mitchellh.post-processor.vagrant" {
-		return nil, false, fmt.Errorf("Unknown artifact type, requires box from vagrant post-processor: %s", artifact.BuilderId())
+		return nil, false, fmt.Errorf(
+			"Unknown artifact type, requires box from vagrant post-processor: %s", artifact.BuilderId())
 	}
 
 	box := artifact.Files()[0]
 	if !strings.HasSuffix(box, ".box") {
-		return nil, false, fmt.Errorf("Unknown files in artifact from vagrant post-processor: %s", artifact.Files())
+		return nil, false, fmt.Errorf(
+			"Unknown files in artifact from vagrant post-processor: %s", artifact.Files())
 	}
 
 	provider := providerFromBuilderName(artifact.Id())
