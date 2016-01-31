@@ -141,7 +141,7 @@ func (p *PostProcessor) PostProcess(ui packer.Ui, artifact packer.Artifact) (pac
 func (p *PostProcessor) getMetadata() (*Metadata, error) {
 	body, err := os.Open(p.config.MetadataPath)
 	if err != nil {
-		return &Metadata{Name: p.config.Name}, err
+		return &Metadata{Name: p.config.Name}, nil
 	}
 	defer body.Close()
 
