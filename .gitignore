@@ -22,3 +22,9 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+.envrc
+_vendor/
+artifacts/
+bin/
+src/
