@@ -1,5 +1,0 @@
-gom 'github.com/mitchellh/packer/packer/plugin'
-gom 'github.com/mitchellh/packer/common'
-gom 'github.com/mitchellh/packer/helper/config'
-gom 'github.com/mitchellh/packer/packer'
-gom 'github.com/mitchellh/packer/template/interpolate'

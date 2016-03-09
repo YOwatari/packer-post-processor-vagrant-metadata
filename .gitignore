@@ -24,7 +24,4 @@ _testmain.go
 *.prof
 
 .envrc
-_vendor/
-artifacts/
-bin/
-src/
+_tmp/

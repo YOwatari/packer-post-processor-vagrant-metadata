@@ -1,0 +1,20 @@
+box: tcnksm/gox
+build:
+  steps:
+    - setup-go-workspace
+    - script:
+      name: go get
+      code: |
+        make test/deps
+    - tcnksm/goveralls:
+      token: $COVERALLS_TOKEN
+    - tcnksm/gox
+    - tcnksm/zip:
+      input: $WERCKER_OUTPUT_DIR/pkg
+      output: $WERCKER_OUTPUT_DIR/artifacts
+deploy:
+  steps:
+    - tcnksm/ghr:
+      token: $GITHUB_TOKEN
+      input: artifacts
+      replace: true
