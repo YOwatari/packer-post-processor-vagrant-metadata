@@ -18,4 +18,5 @@ deploy:
       token: $GITHUB_TOKEN
       input: artifacts
       version: v0.1
+      pre_release: true
       replace: false
