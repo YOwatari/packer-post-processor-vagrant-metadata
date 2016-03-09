@@ -36,7 +36,7 @@ deploy:
     - wercker/gox:
         os: linux darwin windows
         arch: amd64
-        output: '{{.Dir}}_{{.OS}}_{{.Arch}}/{{/Dir}}'
+        output: '{{.Dir}}_{{.OS}}_{{.Arch}}/{{.Dir}}'
         dest: $WERCKER_OUTPUT_DIR/pkg
     - tcnksm/zip:
         input: $WERCKER_OUTPUT_DIR/pkg
