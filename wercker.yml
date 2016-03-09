@@ -3,20 +3,51 @@ build:
   steps:
     - setup-go-workspace
     - script:
-      name: go get
-      code: |
-        make test/deps
+        name: show environments
+        code: |
+          git version
+          go version
+    - script:
+        name: go get
+        code: |
+          make deps
+    - script:
+        name: go test
+        code: |
+          make test
     - tcnksm/goveralls:
-      token: $COVERALLS_TOKEN
-    - tcnksm/gox
-    - tcnksm/zip:
-      input: $WERCKER_OUTPUT_DIR/pkg
-      output: $WERCKER_OUTPUT_DIR/artifacts
+        token: $COVERALLS_TOKEN
 deploy:
   steps:
+    - setup-go-workspace
+    - script:
+        name: install tools
+        code: |
+          apt-get update
+          apt-get install -y zip
+    - motemen/gobump-github-pull-request:
+        github_token: $GITHUB_TOKEN
+    - script:
+        name: go get
+        code: |
+          make deps
+    - wercker/gox:
+        os: linux darwin windows
+        arch: amd64
+        output: '{{.Dir}}_{{.OS}}_{{.Arch}}/{{/Dir}}'
+        dest: $WERCKER_OUTPUT_DIR/pkg
+    - tcnksm/zip:
+        input: $WERCKER_OUTPUT_DIR/pkg
+        output: $WERCKER_OUTPUT_DIR/artifacts
+    - script:
+        name: set release tag
+        code: |
+          if [ -n "$GOBUMP_NEA_VERSION" ]; then
+            export RELEASE_TAG="v$GOBUMP_NEA_VERSION"
+          fi
     - tcnksm/ghr:
-      token: $GITHUB_TOKEN
-      input: artifacts
-      version: v0.1
-      pre_release: true
-      replace: false
+        token: $GITHUB_TOKEN
+        input: $WERCKER_OUTPUT_DIR/artifacts
+        replace: true
+        version: $RELEASE_TAG
+        opt: --draft
