@@ -1,25 +1,30 @@
-.PHONY: all echo depends build
+.PHONY: all \
+	deps build install \
+	test/deps test \
 
-NAME:=$(shell basename $(CURDIR))
-VERSION:=$(shell git log --pretty=format:"%h (%ad)" --date=short -1)
+VERSION:=$(shell git describe --tags --always --dirty) $(shell git name-rev --name-only HEAD)
+BUILD_FLAGS:=-ldflags "-X main.Version \"$(VERSION)\""
+ARTIFACTS_DIR:=$(CURDIR)/artifacts
+
 GOOS:=linux darwin windows
 GOARCH:=amd64
 
 
-all: build
+all: test build
 
-echo:
-	@echo "   name: $(NAME)"
-	@echo "version: $(VERSION)"
-	@echo " GOROOT: $$GOROOT"
-	@echo " GOPATH: $$GOPATH"
-	@go version
+deps:
+	go get -d -v
 
-depends:
-	go get github.com/mattn/gom
+build: deps
 	go get github.com/mitchellh/gox
 	go get github.com/cloudfoundry/gosigar
-	gom install
+	gox -os="$(GOOS)" -arch="$(GOARCH)" -output="$(ARTIFACTS_DIR)/$(shell basename $(CURDIR))_{{.OS}}_{{.Arch}}" $(BUILD_FLAGS)
 
-build: depends echo
-	gox -os="$(GOOS)" -arch="$(GOARCH)" -output="artifacts/{{.OS}}-{{.Arch}}/$(NAME)" -ldflags "-X main.version '$(VERSION)'"
+test/deps:
+	go get -d -t -v
+
+test: test/deps
+	go test -v ./...
+
+install: deps
+	go install -v $(BUILD_FLAGS)
