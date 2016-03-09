@@ -5,7 +5,7 @@ packer-post-processor-vagrant-metadata
 
 [release]: https://github.com/YOwatari/packer-post-processor-vagrant-metadata/releases/latest
 [wercker]: https://app.wercker.com/project/bykey/3410e7e6435e834db347a499123da6df
-[license]: https://github.com/YOwatari/packer-post-processor-vagrant-metadata/master/LICENSE
+[license]: https://github.com/YOwatari/packer-post-processor-vagrant-metadata/blob/master/LICENSE
 [coveralls]: https://coveralls.io/github/YOwatari/packer-post-processor-vagrant-metadata?branch=master
 
 saving vagrant metadata.json to local in a packer post-processor
