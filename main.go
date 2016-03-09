@@ -4,6 +4,8 @@ import (
 	"github.com/mitchellh/packer/packer/plugin"
 )
 
+const version = "0.1.0"
+
 func main() {
 	server, err := plugin.Server()
 	if err != nil {
