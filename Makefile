@@ -20,11 +20,11 @@ build: deps
 	go get github.com/cloudfoundry/gosigar
 	gox -os="$(GOOS)" -arch="$(GOARCH)" -output="$(ARTIFACTS_DIR)/$(shell basename $(CURDIR))_{{.OS}}_{{.Arch}}" $(BUILD_FLAGS)
 
+install: deps
+	go install -v $(BUILD_FLAGS)
+
 test/deps:
 	go get -d -t -v
 
 test: test/deps
 	go test -v ./...
-
-install: deps
-	go install -v $(BUILD_FLAGS)
