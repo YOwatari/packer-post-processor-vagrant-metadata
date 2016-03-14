@@ -21,11 +21,11 @@ deploy:
   steps:
     - setup-go-workspace
     - script:
-        name: install tools
+        name: setup
         code: |
           apt-get update
           apt-get install -y zip
-          make setup/tool
+          make setup
     - motemen/gobump-github-pull-request:
         github_token: $GITHUB_TOKEN
     - script:
