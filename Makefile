@@ -1,9 +1,10 @@
 .PHONY: all \
-	deps build install \
+	setup/tool \
+	deps build install clean \
 	test/deps test \
 
-VERSION:=$(shell git describe --tags --always --dirty) $(shell git name-rev --name-only HEAD)
-BUILD_FLAGS:=-ldflags "-X main.Version \"$(VERSION)\""
+VERSION=$(shell gobump show | $(CURDIR)/_tmp/bin/jq -r .version)
+BUILD_FLAGS=-ldflags "-X main.Version \"v$(VERSION)\""
 ARTIFACTS_DIR:=$(CURDIR)/artifacts
 
 GOOS:=linux darwin windows
@@ -12,8 +13,21 @@ GOARCH:=amd64
 
 all: test build
 
-deps:
-	go get -d -v
+ifndef JQ_URL
+  ifeq ($(shell expr substr $(shell uname -s) 1 5), Linux)
+    JQ_URL=http://stedolan.github.io/jq/download/linux64/jq
+  endif
+  ifeq ($(shell uname), Darwin)
+    JQ_URL=https://github.com/stedolan/jq/releases/download/jq-1.5/jq-osx-amd64
+  endif
+endif
+setup/tool:
+	go get github.com/motemen/gobump/cmd/gobump
+	curl -L $(JQ_URL) -o $(CURDIR)/_tmp/bin/jq
+	chmod +x $(CURDIR)/_tmp/bin/jq
+
+deps: clean setup/tool
+	go get -d -v ./...
 
 build: deps
 	go get github.com/mitchellh/gox
@@ -23,8 +37,12 @@ build: deps
 install: deps
 	go install -v $(BUILD_FLAGS)
 
-test/deps:
-	go get -d -t -v
+clean:
+	-find $(CURDIR)/_tmp -maxdepth 1 -mindepth 1 ! -name .gitkeep | xargs rm -rf
+	-find $(CURDIR)/artifacts -maxdepth 1 -mindepth 1 ! -name .gitkeep | xargs rm -rf
+
+test/deps: clean
+	go get -d -t -v ./...
 
 test: test/deps
 	go test -v ./...
