@@ -5,40 +5,27 @@ import (
 )
 
 func TestMetadataAdd(t *testing.T) {
-	var expected, m *Metadata
-	var p *Provider
-
-	p = &Provider{Name: "test"}
-	expected = &Metadata{
-		Versions: []*Version{
-			&Version{
-				Version:   "v1",
-				Providers: []*Provider{p},
-			},
-			&Version{
-				Version:   "v2",
-				Providers: []*Provider{p},
-			},
-		},
-	}
+	var m *Metadata
 
 	m = &Metadata{
 		Versions: []*Version{
 			&Version{
-				Version:   "v1",
-				Providers: []*Provider{p},
+				Version: "v1",
+				Providers: []*Provider{
+					&Provider{Name: "test"},
+				},
 			},
 		},
 	}
 
 	if e := m.add("v2", &Provider{Name: "test"}); e != nil {
-		t.Errorf("should not happen error")
+		t.Fatalf("should not happen error")
 	}
 
-	// TODO: fix
-	if m.Versions[0].Version != expected.Versions[0].Version {
+	if len(m.Versions) != 2 && m.Versions[1].Version != "v2" {
 		t.Errorf("should be enable to add version to metadata")
 	}
+
 }
 
 func TestAlreadyExsits(t *testing.T) {
@@ -49,9 +36,7 @@ func TestAlreadyExsits(t *testing.T) {
 			&Version{
 				Version: "v1",
 				Providers: []*Provider{
-					&Provider{
-						Name: "test",
-					},
+					&Provider{Name: "test"},
 				},
 			},
 		},
