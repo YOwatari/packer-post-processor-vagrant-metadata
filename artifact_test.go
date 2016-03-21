@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestArtifact(t *testing.T) {
+func TestArtifact_ImplementsArtifact(t *testing.T) {
 	var raw interface{}
 	raw = &Artifact{}
 	if _, ok := raw.(packer.Artifact); !ok {
