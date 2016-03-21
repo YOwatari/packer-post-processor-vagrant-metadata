@@ -153,12 +153,16 @@ func (p *PostProcessor) getMetadata() (*Metadata, error) {
 }
 
 func (p *PostProcessor) putMetadata(metadata *Metadata) error {
-	var buf bytes.Buffer
+	var buf, dst bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(metadata); err != nil {
 		return err
 	}
 
-	if err := ioutil.WriteFile(p.config.MetadataPath, buf.Bytes(), os.ModePerm); err != nil {
+	if err := json.Indent(&dst, buf.Bytes(), "", "    "); err != nil {
+		return err
+	}
+
+	if err := ioutil.WriteFile(p.config.MetadataPath, dst.Bytes(), os.FileMode(0644)); err != nil {
 		return err
 	}
 
