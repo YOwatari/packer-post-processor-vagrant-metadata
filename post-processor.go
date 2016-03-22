@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -139,30 +138,25 @@ func (p *PostProcessor) PostProcess(ui packer.Ui, artifact packer.Artifact) (pac
 }
 
 func (p *PostProcessor) getMetadata() (*Metadata, error) {
-	body, err := os.Open(p.config.MetadataPath)
+	buf, err := ioutil.ReadFile(p.config.MetadataPath)
 	if err != nil {
 		return &Metadata{Name: p.config.Name}, nil
 	}
-	defer body.Close()
 
 	metadata := &Metadata{}
-	if err := json.NewDecoder(body).Decode(metadata); err != nil {
+	if err := json.Unmarshal(buf, metadata); err != nil {
 		return nil, err
 	}
 	return metadata, nil
 }
 
 func (p *PostProcessor) putMetadata(metadata *Metadata) error {
-	var buf, dst bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(metadata); err != nil {
+	buf, err := json.MarshalIndent(metadata, "", "    ")
+	if err != nil {
 		return err
 	}
 
-	if err := json.Indent(&dst, buf.Bytes(), "", "    "); err != nil {
-		return err
-	}
-
-	if err := ioutil.WriteFile(p.config.MetadataPath, dst.Bytes(), os.FileMode(0644)); err != nil {
+	if err := ioutil.WriteFile(p.config.MetadataPath, buf, os.FileMode(0644)); err != nil {
 		return err
 	}
 
