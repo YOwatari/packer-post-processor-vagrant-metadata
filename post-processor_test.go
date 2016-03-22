@@ -4,18 +4,21 @@ import (
 	"bufio"
 	"bytes"
 	"github.com/mitchellh/packer/packer"
+	"io/ioutil"
 	"os"
 	"strings"
 	"syscall"
 	"testing"
 )
 
+const validBuilderId = "mitchellh.post-processor.vagrant"
+
 func testConfig() map[string]interface{} {
 	return map[string]interface{}{
 		"name":       "test",
 		"output":     "_tmp/metadata.json",
 		"url_prefix": "files://",
-		"box_dir":    "_tmp/",
+		"box_dir":    "_tmp",
 		"version":    "0.0.0",
 	}
 }
@@ -36,6 +39,20 @@ func testUi() *packer.BasicUi {
 	}
 }
 
+func testCreateFile(path, body string) (string, error) {
+	f, err := os.Create(path)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	writer := bufio.NewWriter(f)
+	writer.WriteString(body)
+	writer.Flush()
+
+	return f.Name(), nil
+}
+
 func TestImplementsPostProcessor(t *testing.T) {
 	var _ packer.PostProcessor = new(PostProcessor)
 }
@@ -50,7 +67,6 @@ func TestConfigure_RequiredConfigs(t *testing.T) {
 			t.Fatalf("should have error when missing %s", v)
 		}
 	}
-
 }
 
 func TestPostProcess_BadBuilderId(t *testing.T) {
@@ -65,26 +81,8 @@ func TestPostProcess_BadBuilderId(t *testing.T) {
 }
 
 func TestPostProcess_BadFiles(t *testing.T) {
-	artifact := &packer.MockArtifact{
-		BuilderIdValue: "mitchellh.post-processor.vagrant",
-		FilesValue:     []string{"invalid"},
-	}
-
-	_, _, err := testPostProcessor(t).PostProcess(testUi(), artifact)
-	if !strings.Contains(err.Error(), "Unknown files in artifact") {
-		t.Fatalf("err: %s", err)
-	}
-}
-
-func TestPostProcess_MissingBox(t *testing.T) {
-	f, err := os.Create("_tmp/missing.box")
+	name, err := testCreateFile("_tmp/invalid", "")
 	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-
-	name := f.Name()
-
-	if err := f.Close(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 
@@ -93,7 +91,28 @@ func TestPostProcess_MissingBox(t *testing.T) {
 	}
 
 	artifact := &packer.MockArtifact{
-		BuilderIdValue: "mitchellh.post-processor.vagrant",
+		BuilderIdValue: validBuilderId,
+		FilesValue:     []string{name},
+	}
+
+	_, _, err = testPostProcessor(t).PostProcess(testUi(), artifact)
+	if !strings.Contains(err.Error(), "Unknown files in artifact") {
+		t.Fatalf("err: %s", err)
+	}
+}
+
+func TestPostProcess_MissingBox(t *testing.T) {
+	name, err := testCreateFile("_tmp/missing.box", "")
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if err := os.Remove(name); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	artifact := &packer.MockArtifact{
+		BuilderIdValue: validBuilderId,
 		FilesValue:     []string{string(name)},
 	}
 
@@ -107,30 +126,16 @@ func TestPostProcess_MissingBox(t *testing.T) {
 }
 
 func TestPostProcess_BadMetadata(t *testing.T) {
-	f, err := os.Create("_tmp/invalid.json")
+	metadataName, err := testCreateFile("_tmp/invalid.json", `{name: invalid json}`)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
 
-	writer := bufio.NewWriter(f)
-	writer.WriteString(`{name: invalid json}`)
-	writer.Flush()
-
-	metadataName := f.Name()
 	c := testConfig()
 	c["output"] = metadataName
 
-	if err := f.Close(); err != nil {
-		t.Fatalf("err: %s", err)
-	}
-
-	if f, err = os.Create("_tmp/vagrant.box"); err != nil {
-		t.Fatalf("err: %s", err)
-	}
-
-	boxName := f.Name()
-
-	if err := f.Close(); err != nil {
+	boxName, err := testCreateFile("_tmp/vagrant.box", "")
+	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
 
@@ -140,7 +145,7 @@ func TestPostProcess_BadMetadata(t *testing.T) {
 	}
 
 	artifact := &packer.MockArtifact{
-		BuilderIdValue: "mitchellh.post-processor.vagrant",
+		BuilderIdValue: validBuilderId,
 		FilesValue:     []string{boxName},
 	}
 
@@ -148,42 +153,26 @@ func TestPostProcess_BadMetadata(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	if err := os.Remove(metadataName); err != nil {
-		t.Fatalf("err: %s", err)
-	}
-
-	if err := os.Remove(boxName); err != nil {
-		t.Fatalf("err: %s", err)
+	for _, v := range []string{metadataName, boxName} {
+		if err := os.Remove(v); err != nil {
+			t.Fatalf("err: %s", err)
+		}
 	}
 }
 
-func TestPostProcess_Hoge(t *testing.T) {
-	f, err := os.Create("_tmp/valid.json")
+func TestPostProcess_EofMetadata(t *testing.T) {
+	metadataName, err := testCreateFile("_tmp/eof.json", "")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
 
-	metadataName := f.Name()
+	boxName, err := testCreateFile("_tmp/vagrant.box", "")
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
 	c := testConfig()
 	c["output"] = metadataName
-
-	if err := f.Close(); err != nil {
-		t.Fatalf("err: %s", err)
-	}
-
-	if err := os.Remove(metadataName); err != nil {
-		t.Fatalf("err: %s", err)
-	}
-
-	if f, err = os.Create("_tmp/vagrant.box"); err != nil {
-		t.Fatalf("err: %s", err)
-	}
-
-	boxName := f.Name()
-
-	if err := f.Close(); err != nil {
-		t.Fatalf("err: %s", err)
-	}
 
 	var p PostProcessor
 	if err := p.Configure(c); err != nil {
@@ -191,7 +180,46 @@ func TestPostProcess_Hoge(t *testing.T) {
 	}
 
 	artifact := &packer.MockArtifact{
-		BuilderIdValue: "mitchellh.post-processor.vagrant",
+		BuilderIdValue: validBuilderId,
+		FilesValue:     []string{boxName},
+	}
+
+	if _, _, err := p.PostProcess(testUi(), artifact); err == nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	for _, v := range []string{metadataName, boxName} {
+		if err := os.Remove(v); err != nil {
+			t.Fatalf("err: %s", err)
+		}
+	}
+}
+
+func TestPostProcess_Json(t *testing.T) {
+	metadataName, err := testCreateFile("_tmp/metadata.json", "")
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if err := os.Remove(metadataName); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	boxName, err := testCreateFile("_tmp/vagrant.box", "")
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	c := testConfig()
+	c["output"] = metadataName
+
+	var p PostProcessor
+	if err := p.Configure(c); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	artifact := &packer.MockArtifact{
+		BuilderIdValue: validBuilderId,
 		FilesValue:     []string{boxName},
 	}
 
@@ -199,11 +227,38 @@ func TestPostProcess_Hoge(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	if err := os.Remove(boxName); err != nil {
+	actual, err := ioutil.ReadFile("_tmp/metadata.json")
+	if err != nil {
 		t.Fatalf("err: %s", err)
+	}
+
+	expected := []byte(`{
+    "name": "test",
+    "discription": "",
+    "versions": [
+        {
+            "version": "0.0.0",
+            "providers": [
+                {
+                    "name": "id",
+                    "url": "files:///_tmp/vagrant.box",
+                    "checksum_type": "sha256",
+                    "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+            ]
+        }
+    ]
+}`)
+
+	if string(actual) != string(expected) {
+		t.Fatalf("should be the same as expected json string")
+	}
+
+	for _, v := range []string{metadataName, boxName} {
+		if err := os.Remove(v); err != nil {
+			t.Fatalf("err: %s", err)
+		}
 	}
 }
 
-// TODO: sha256確認
-// TODO: 初期生成json
 // TODO: 追加json
