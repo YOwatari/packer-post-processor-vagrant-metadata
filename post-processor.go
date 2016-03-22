@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -121,7 +120,7 @@ func (p *PostProcessor) PostProcess(ui packer.Ui, artifact packer.Artifact) (pac
 	ui.Message(fmt.Sprintf("Checksum is %s", checksum))
 
 	ui.Message(fmt.Sprintf("Adding %s %s box to metadata", provider, p.config.Version))
-	if err := metadata.add(p.config.Version, &Provider{
+	if err := metadata.Add(p.config.Version, &Provider{
 		Name:         provider,
 		Url:          fmt.Sprintf("%s/%s/%s", p.config.UrlPrefix, p.config.BoxDir, path.Base(box)),
 		ChecksumType: "sha256",
@@ -139,26 +138,25 @@ func (p *PostProcessor) PostProcess(ui packer.Ui, artifact packer.Artifact) (pac
 }
 
 func (p *PostProcessor) getMetadata() (*Metadata, error) {
-	body, err := os.Open(p.config.MetadataPath)
+	buf, err := ioutil.ReadFile(p.config.MetadataPath)
 	if err != nil {
 		return &Metadata{Name: p.config.Name}, nil
 	}
-	defer body.Close()
 
 	metadata := &Metadata{}
-	if err := json.NewDecoder(body).Decode(metadata); err != nil {
+	if err := json.Unmarshal(buf, metadata); err != nil {
 		return nil, err
 	}
 	return metadata, nil
 }
 
 func (p *PostProcessor) putMetadata(metadata *Metadata) error {
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(metadata); err != nil {
+	buf, err := json.MarshalIndent(metadata, "", "    ")
+	if err != nil {
 		return err
 	}
 
-	if err := ioutil.WriteFile(p.config.MetadataPath, buf.Bytes(), os.ModePerm); err != nil {
+	if err := ioutil.WriteFile(p.config.MetadataPath, buf, os.FileMode(0644)); err != nil {
 		return err
 	}
 

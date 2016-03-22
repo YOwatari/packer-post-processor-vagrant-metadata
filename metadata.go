@@ -22,7 +22,7 @@ type Provider struct {
 	Checksum     string `json:"checksum"`
 }
 
-func (m *Metadata) add(version string, provider *Provider) error {
+func (m *Metadata) Add(version string, provider *Provider) error {
 	for _, vs := range m.Versions {
 		if vs.Version == version {
 			for _, p := range vs.Providers {
