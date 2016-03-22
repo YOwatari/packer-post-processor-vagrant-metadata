@@ -120,7 +120,7 @@ func (p *PostProcessor) PostProcess(ui packer.Ui, artifact packer.Artifact) (pac
 	ui.Message(fmt.Sprintf("Checksum is %s", checksum))
 
 	ui.Message(fmt.Sprintf("Adding %s %s box to metadata", provider, p.config.Version))
-	if err := metadata.add(p.config.Version, &Provider{
+	if err := metadata.Add(p.config.Version, &Provider{
 		Name:         provider,
 		Url:          fmt.Sprintf("%s/%s/%s", p.config.UrlPrefix, p.config.BoxDir, path.Base(box)),
 		ChecksumType: "sha256",
