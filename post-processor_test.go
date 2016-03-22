@@ -57,30 +57,30 @@ func TestImplementsPostProcessor(t *testing.T) {
 	var _ packer.PostProcessor = new(PostProcessor)
 }
 
-func TestConfigure_RequiredConfigs(t *testing.T) {
+func TestConfigure_requiredConfigures(t *testing.T) {
 	s := []string{"name", "output", "url_prefix", "box_dir", "version"}
 	for _, v := range s {
 		p := new(PostProcessor)
 		c := testConfig()
 		delete(c, v)
 		if err := p.Configure(c); err == nil {
-			t.Fatalf("should have error when missing %s", v)
+			t.Errorf("should happen error when missing %s", v)
 		}
 	}
 }
 
-func TestPostProcess_BadBuilderId(t *testing.T) {
+func TestPostProcess_badBuilderId(t *testing.T) {
 	artifact := &packer.MockArtifact{
 		BuilderIdValue: "invalid",
 	}
 
 	_, _, err := testPostProcessor(t).PostProcess(testUi(), artifact)
-	if !strings.Contains(err.Error(), "Unknown artifact type") {
-		t.Fatalf("err: %s", err)
+	if err != nil && !strings.Contains(err.Error(), "Unknown artifact type") {
+		t.Errorf("should happen error about unknown artifact.\nerr: %s", err)
 	}
 }
 
-func TestPostProcess_BadFiles(t *testing.T) {
+func TestPostProcess_badFiles(t *testing.T) {
 	name, err := testCreateFile("_tmp/invalid", "")
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -96,12 +96,12 @@ func TestPostProcess_BadFiles(t *testing.T) {
 	}
 
 	_, _, err = testPostProcessor(t).PostProcess(testUi(), artifact)
-	if !strings.Contains(err.Error(), "Unknown files in artifact") {
-		t.Fatalf("err: %s", err)
+	if err != nil && !strings.Contains(err.Error(), "Unknown files in artifact") {
+		t.Errorf("should happen error about box files.\nerr: %s", err)
 	}
 }
 
-func TestPostProcess_MissingBox(t *testing.T) {
+func TestPostProcess_missingBox(t *testing.T) {
 	name, err := testCreateFile("_tmp/missing.box", "")
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -120,12 +120,12 @@ func TestPostProcess_MissingBox(t *testing.T) {
 	if err != nil {
 		pathErr := err.(*os.PathError)
 		if pathErr.Err.(syscall.Errno) != syscall.ENOENT {
-			t.Fatalf("err: %s", pathErr)
+			t.Errorf("should happen error about missing box file.\nerr: %s", pathErr)
 		}
 	}
 }
 
-func TestPostProcess_BadMetadata(t *testing.T) {
+func TestPostProcess_badMetadata(t *testing.T) {
 	metadataName, err := testCreateFile("_tmp/invalid.json", `{name: invalid json}`)
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -150,7 +150,7 @@ func TestPostProcess_BadMetadata(t *testing.T) {
 	}
 
 	if _, _, err := p.PostProcess(testUi(), artifact); err == nil {
-		t.Fatalf("err: %s", err)
+		t.Errorf("should happen error about invalid json format.\nerr: %s", err)
 	}
 
 	for _, v := range []string{metadataName, boxName} {
@@ -160,7 +160,7 @@ func TestPostProcess_BadMetadata(t *testing.T) {
 	}
 }
 
-func TestPostProcess_EofMetadata(t *testing.T) {
+func TestPostProcess_eofMetadata(t *testing.T) {
 	metadataName, err := testCreateFile("_tmp/eof.json", "")
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -185,7 +185,7 @@ func TestPostProcess_EofMetadata(t *testing.T) {
 	}
 
 	if _, _, err := p.PostProcess(testUi(), artifact); err == nil {
-		t.Fatalf("err: %s", err)
+		t.Errorf("should happen error about EOF.\nerr: %s", err)
 	}
 
 	for _, v := range []string{metadataName, boxName} {
@@ -195,7 +195,7 @@ func TestPostProcess_EofMetadata(t *testing.T) {
 	}
 }
 
-func TestPostProcess_Json(t *testing.T) {
+func TestPostProcess_expectedJson(t *testing.T) {
 	metadataName, err := testCreateFile("_tmp/metadata.json", "")
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -251,7 +251,7 @@ func TestPostProcess_Json(t *testing.T) {
 }`)
 
 	if string(actual) != string(expected) {
-		t.Fatalf("should be the same as expected json string")
+		t.Errorf("should be the same as expected json string")
 	}
 
 	for _, v := range []string{metadataName, boxName} {
@@ -260,5 +260,3 @@ func TestPostProcess_Json(t *testing.T) {
 		}
 	}
 }
-
-// TODO: 追加json
