@@ -11,7 +11,7 @@ build:
         name: go test
         code: |
           make test
-    - tcnksm/goveralls:
+    - yowatari/goveralls:
         token: $COVERALLS_TOKEN
 deploy:
   steps:
