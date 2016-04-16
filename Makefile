@@ -6,7 +6,8 @@
 ARTIFACTS_DIR:=$(CURDIR)/artifacts
 
 VERSION=$(shell gobump show | jq -r .version)
-BUILD_FLAGS=-ldflags "-X main.Version \"v$(VERSION)\""
+COMMIT=$(shell git rev-parse --verify HEAD)
+BUILD_FLAGS=-ldflags "-X main.version=\"$(VERSION)\" -X main.GitCommit=\"$(COMMIT)\""
 GOOS:=linux darwin windows
 GOARCH:=amd64
 

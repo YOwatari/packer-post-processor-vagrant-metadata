@@ -25,3 +25,4 @@ _testmain.go
 
 .envrc
 _tmp/
+artifacts/packer-post-processor-vagrant-metadata_*
