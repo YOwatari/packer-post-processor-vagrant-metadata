@@ -10,14 +10,14 @@ func Commands(meta *command.Meta) map[string]cli.CommandFactory {
 		"version-number": func() (cli.Command, error) {
 			return &command.VersionNumberCommand{
 				Meta:    *meta,
-				Version: version,
+				Version: Version,
 			}, nil
 		},
 
 		"version": func() (cli.Command, error) {
 			return &command.VersionCommand{
 				Meta:     *meta,
-				Version:  version,
+				Version:  Version,
 				Revision: GitCommit,
 				Name:     Name,
 			}, nil

@@ -5,12 +5,12 @@ import (
 )
 
 type Metadata struct {
-	Name        string     `json:"name"`
-	Description string     `json:"discription"`
-	Versions    []*Version `json:"versions"`
+	Name        string        `json:"name"`
+	Description string        `json:"discription"`
+	Versions    []*BoxVersion `json:"versions"`
 }
 
-type Version struct {
+type BoxVersion struct {
 	Version   string      `json:"version"`
 	Providers []*Provider `json:"providers"`
 }
@@ -34,7 +34,7 @@ func (m *Metadata) Add(version string, provider *Provider) error {
 			return nil
 		}
 	}
-	m.Versions = append(m.Versions, &Version{
+	m.Versions = append(m.Versions, &BoxVersion{
 		Version:   version,
 		Providers: []*Provider{provider},
 	})
