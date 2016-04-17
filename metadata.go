@@ -6,7 +6,7 @@ import (
 
 type Metadata struct {
 	Name        string        `json:"name"`
-	Description string        `json:"discription"`
+	Description string        `json:"description"`
 	Versions    []*BoxVersion `json:"versions"`
 }
 

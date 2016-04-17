@@ -234,7 +234,7 @@ func TestPostProcess_expectedJson(t *testing.T) {
 
 	expected := []byte(`{
     "name": "test",
-    "discription": "",
+    "description": "test",
     "versions": [
         {
             "version": "0.0.0",

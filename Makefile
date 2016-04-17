@@ -3,7 +3,7 @@
 	deps build install \
 	test/deps test \
 
-ARTIFACTS_DIR:=$(CURDIR)/artifacts
+DEST_DIR:=$(CURDIR)/pkg
 
 VERSION=$(shell gobump show | jq -r .version)
 COMMIT=$(shell git rev-parse --verify HEAD)
@@ -24,13 +24,13 @@ deps:
 build: clean setup deps
 	go get github.com/mitchellh/gox
 	go get github.com/cloudfoundry/gosigar
-	gox -os="$(GOOS)" -arch="$(GOARCH)" -output="$(ARTIFACTS_DIR)/$(shell basename $(CURDIR))_{{.OS}}_{{.Arch}}" $(BUILD_FLAGS)
+	gox -os="$(GOOS)" -arch="$(GOARCH)" -output="$(DEST_DIR)/{{.Dir}}_{{.OS}}_{{.Arch}}/{{.Dir}}" $(BUILD_FLAGS)
 
 install: setup deps
 	go install -v $(BUILD_FLAGS)
 
 clean:
-	-find $(ARTIFACTS_DIR) -maxdepth 1 -mindepth 1 ! -name .gitkeep | xargs rm -rf
+	-find $(DEST_DIR) -maxdepth 1 -mindepth 1 ! -name .gitkeep | xargs rm -rf
 
 test/deps:
 	go get -d -t -v ./...
