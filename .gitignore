@@ -25,7 +25,7 @@ _testmain.go
 
 .envrc
 pkg/
-artifacts/
 _builds/
+_cache/
 _projects/
 _steps/
