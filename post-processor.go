@@ -40,9 +40,7 @@ func (p *PostProcessor) Configure(raws ...interface{}) error {
 		Interpolate:        true,
 		InterpolateContext: &p.config.ctx,
 		InterpolateFilter: &interpolate.RenderFilter{
-			Exclude: []string{
-				"description",
-			},
+			Exclude: []string{},
 		},
 	}, raws...)
 
