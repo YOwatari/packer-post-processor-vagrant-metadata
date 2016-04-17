@@ -24,6 +24,8 @@ _testmain.go
 *.prof
 
 .envrc
-_tmp/
 pkg/
 artifacts/
+_builds/
+_projects/
+_steps/
