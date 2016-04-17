@@ -3,7 +3,7 @@
 	deps build install \
 	test/deps test \
 
-DEST_DIR:=$(CURDIR)/pkg
+DEST_DIR=$(CURDIR)/pkg
 
 VERSION=$(shell gobump show | jq -r .version)
 COMMIT=$(shell git rev-parse --verify HEAD)
