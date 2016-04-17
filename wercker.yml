@@ -25,6 +25,8 @@ deploy:
           chmod +x /usr/local/bin/jq
     - motemen/gobump-github-pull-request:
         github_token: $GITHUB_TOKEN
+        label_pattern_major: ^(major|breaking)$
+        label_pattern_minor: ^(minor|feature)$
     - script:
         name: setup
         code: |
