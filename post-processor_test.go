@@ -15,11 +15,12 @@ const validBuilderId = "mitchellh.post-processor.vagrant"
 
 func testConfig() map[string]interface{} {
 	return map[string]interface{}{
-		"name":       "test",
-		"output":     "_tmp/metadata.json",
-		"url_prefix": "files://",
-		"box_dir":    "_tmp",
-		"version":    "0.0.0",
+		"name":        "test",
+		"description": "test",
+		"output":      "_test/valid.json",
+		"url_prefix":  "files://",
+		"box_dir":     "_test",
+		"version":     "0.0.0",
 	}
 }
 
@@ -81,7 +82,7 @@ func TestPostProcess_badBuilderId(t *testing.T) {
 }
 
 func TestPostProcess_badFiles(t *testing.T) {
-	name, err := testCreateFile("_tmp/invalid", "")
+	name, err := testCreateFile("_test/invalid", "")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -102,7 +103,7 @@ func TestPostProcess_badFiles(t *testing.T) {
 }
 
 func TestPostProcess_missingBox(t *testing.T) {
-	name, err := testCreateFile("_tmp/missing.box", "")
+	name, err := testCreateFile("_test/missing.box", "")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -126,7 +127,7 @@ func TestPostProcess_missingBox(t *testing.T) {
 }
 
 func TestPostProcess_badMetadata(t *testing.T) {
-	metadataName, err := testCreateFile("_tmp/invalid.json", `{name: invalid json}`)
+	metadataName, err := testCreateFile("_test/invalid.json", `{name: invalid json}`)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -134,7 +135,7 @@ func TestPostProcess_badMetadata(t *testing.T) {
 	c := testConfig()
 	c["output"] = metadataName
 
-	boxName, err := testCreateFile("_tmp/vagrant.box", "")
+	boxName, err := testCreateFile("_test/vagrant.box", "")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -161,12 +162,12 @@ func TestPostProcess_badMetadata(t *testing.T) {
 }
 
 func TestPostProcess_eofMetadata(t *testing.T) {
-	metadataName, err := testCreateFile("_tmp/eof.json", "")
+	metadataName, err := testCreateFile("_test/eof.json", "")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
 
-	boxName, err := testCreateFile("_tmp/vagrant.box", "")
+	boxName, err := testCreateFile("_test/vagrant.box", "")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -196,7 +197,7 @@ func TestPostProcess_eofMetadata(t *testing.T) {
 }
 
 func TestPostProcess_expectedJson(t *testing.T) {
-	metadataName, err := testCreateFile("_tmp/metadata.json", "")
+	metadataName, err := testCreateFile("_test/valid.json", "")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -205,7 +206,7 @@ func TestPostProcess_expectedJson(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	boxName, err := testCreateFile("_tmp/vagrant.box", "")
+	boxName, err := testCreateFile("_test/vagrant.box", "")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -227,21 +228,21 @@ func TestPostProcess_expectedJson(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	actual, err := ioutil.ReadFile("_tmp/metadata.json")
+	actual, err := ioutil.ReadFile("_test/valid.json")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
 
 	expected := []byte(`{
     "name": "test",
-    "discription": "",
+    "description": "test",
     "versions": [
         {
             "version": "0.0.0",
             "providers": [
                 {
                     "name": "id",
-                    "url": "files:///_tmp/vagrant.box",
+                    "url": "files:///_test/vagrant.box",
                     "checksum_type": "sha256",
                     "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
                 }

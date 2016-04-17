@@ -140,7 +140,7 @@ func (p *PostProcessor) PostProcess(ui packer.Ui, artifact packer.Artifact) (pac
 func (p *PostProcessor) getMetadata() (*Metadata, error) {
 	buf, err := ioutil.ReadFile(p.config.MetadataPath)
 	if err != nil {
-		return &Metadata{Name: p.config.Name}, nil
+		return &Metadata{Name: p.config.Name, Description: p.config.Description}, nil
 	}
 
 	metadata := &Metadata{}

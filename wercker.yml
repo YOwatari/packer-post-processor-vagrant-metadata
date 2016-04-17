@@ -25,23 +25,24 @@ deploy:
           chmod +x /usr/local/bin/jq
     - motemen/gobump-github-pull-request:
         github_token: $GITHUB_TOKEN
+        label_pattern_major: ^(major|breaking)$
+        label_pattern_minor: ^(minor|feature)$
     - script:
         name: setup
         code: |
           make setup deps
-    - wercker/gox:
-        os: linux darwin windows
-        arch: amd64
-        output: '{{.Dir}}_{{.OS}}_{{.Arch}}/{{.Dir}}'
-        dest: $WERCKER_OUTPUT_DIR/pkg
+    - script:
+        name: build
+        code: |
+          make build
     - tcnksm/zip:
         input: $WERCKER_OUTPUT_DIR/pkg
         output: $WERCKER_OUTPUT_DIR/artifacts
     - script:
         name: set release tag
         code: |
-          if [ -n "$GOBUMP_NEA_VERSION" ]; then
-            export RELEASE_TAG="v$GOBUMP_NEA_VERSION"
+          if [ -n "$GOBUMP_NEW_VERSION" ]; then
+            export RELEASE_TAG="v$GOBUMP_NEW_VERSION"
           fi
     - tcnksm/ghr:
         token: $GITHUB_TOKEN

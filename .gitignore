@@ -24,5 +24,8 @@ _testmain.go
 *.prof
 
 .envrc
-_tmp/
-artifacts/packer-post-processor-vagrant-metadata_*
+pkg/
+artifacts/
+_builds/
+_projects/
+_steps/
