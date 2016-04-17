@@ -1,7 +1,7 @@
 package main
 
 const Name string = "packer-post-processor-vagrant-metadata"
-const Version string = "0.1.2"
+const Version string = "0.2.0"
 
 // GitCommit describes latest commit hash.
 // This value is extracted by git command when building.
