@@ -28,10 +28,6 @@ deploy:
         label_pattern_major: ^(major|breaking)$
         label_pattern_minor: ^(minor|feature)$
     - script:
-        name: setup
-        code: |
-          make setup deps
-    - script:
         name: build
         code: |
           make build DEST_DIR=$WERCKER_OUTPUT_DIR/pkg
