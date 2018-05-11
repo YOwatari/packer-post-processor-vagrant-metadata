@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"github.com/mitchellh/packer/packer"
+	"github.com/hashicorp/packer/packer"
 	"io/ioutil"
 	"os"
 	"strings"
